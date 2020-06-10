@@ -1,7 +1,13 @@
 const ParametroRendaFamiliar = require('./ParametrosRendaFamiliar');
 const ParametrosIdadePretentende = require('./ParametrosIdadePretentende');
 const ParametrosQuantidadeDependentes = require('./ParametroQuantidadeDependentes');
+const Utilitarios = require('./Utilitarios');
 
+
+//Parâmetros.
+/*Inicialmente a ideia é que os parametros sejam carregados de um banco de dados, 
+ou outro meio externo, onde a alteração, remoção ou edição destes não implica efetuar 
+nenhuma nova edição no codigo fonte*/
 listaParametrosRenda = [];
 listaParametrosRenda.push(ParametroRendaFamiliar(900, 5));
 listaParametrosRenda.push(ParametroRendaFamiliar(1500, 3));
@@ -17,8 +23,7 @@ listaParametrosIdadePretendente.sort((paramA, paramB) => paramB.idadePretendente
 listaParametrosQuantidadeDependentes = []
 listaParametrosQuantidadeDependentes.push(ParametrosQuantidadeDependentes(3, 3));
 listaParametrosQuantidadeDependentes.sort((paramA, paramB) => paramA.quantidadeDependentes - paramB.quantidadeDependentes);
-
-let listaDeFamilias = [];
+//
 
 
 function pontuarRendaFamilia(familia) {
@@ -29,34 +34,16 @@ function pontuarRendaFamilia(familia) {
 
 function pontuarIdadePretendente(familia) {
     let pretendente = familia.pessoas.find(pessoa => pessoa.tipo == 'Pretendente');
-    let parametroEnquadrado = listaParametrosIdadePretendente.find(parametro => parametro.idadePretendente <= calculaIdadePessoa(pretendente.dataDeNascimento));
+    let parametroEnquadrado = listaParametrosIdadePretendente.find(parametro => parametro.idadePretendente <= Utilitarios.calculaIdadePessoa(pretendente.dataDeNascimento));
     return parametroEnquadrado.pontuarIdadePretendente || 1;
 
 }
 
 function pontuarQuantidadeDependentes(familia) {
-    let quantidadeDependentes = familia.pessoas.filter(pessoa => pessoa.tipo == 'Dependente' && calculaIdadeValidaPontuacao(pessoa.dataDeNascimento)).length;
+    let quantidadeDependentes = familia.pessoas.filter(pessoa => pessoa.tipo == 'Dependente' && Utilitarios.calculaMaiorDeIdade(pessoa.dataDeNascimento)).length;
     let parametroEnquadrado = listaParametrosQuantidadeDependentes.filter(parametro => parametro.quantidadeDependentes >= quantidadeDependentes)
     return parametroEnquadrado.pontuarQuantidadeDependentes;
 }
-
-function calculaIdadeValidaPontuacao(stringData) {
-    return calculaIdadePessoa(stringData) < 18;
-
-}
-
-
-function calculaIdadePessoa(stringData) {
-
-    const conversorMilissegundosAnos = 3.2 * Math.pow(10, -11);
-
-    let idadeMs = new Date() - new Date(stringData);
-    let idade = idadeMs * conversorMilissegundosAnos;
-
-    return idade;
-}
-
-
 
 module.exports = (listaDeFamilias) => {
     let listaDeFamiliasPontuadas = listaDeFamilias.filter(familia => familia.status == 0)
